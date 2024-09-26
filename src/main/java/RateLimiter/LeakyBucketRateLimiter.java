@@ -25,9 +25,8 @@ public class LeakyBucketRateLimiter implements RateLimiter{
             if(currentQueueSize.incrementAndGet() <= capacity) {
                 requestQueue.offer(System.nanoTime());
                 return true;
-            }else{
-                currentQueueSize.decrementAndGet();
             }
+            currentQueueSize.decrementAndGet();
         }
         return false;
     }
