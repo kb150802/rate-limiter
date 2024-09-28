@@ -7,18 +7,31 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class FixedWindowCounterRateLimiterTest {
+public class SlidingWindowLogRateLimiterTest {
     RateLimiter rateLimiter;
     @BeforeEach
-    public void setup(){
-        rateLimiter = new FixedWindowCounterRateLimiter(1,3);
+    public void setup() {
+        rateLimiter = new SlidingWindowLogRateLimiter(10,5);
     }
-
     @Test
-    public void threadSafetyTest() throws InterruptedException {
-        int threadCount = 100;
+    public void testWithinLimit() {
+        for(int i = 0; i < 5; ++ i) {
+            assertTrue(rateLimiter.allowRequest());
+        }
+    }
+    @Test
+    public void testExceedLimit() {
+        for(int i = 0;i < 5; ++ i) {
+            assertTrue(rateLimiter.allowRequest());
+        }
+        assertFalse(rateLimiter.allowRequest());
+    }
+    @Test
+    public void testThreadSafety() throws InterruptedException {
+        int threadCount = 1000;
         CountDownLatch latch = new CountDownLatch(threadCount);
         ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
         AtomicInteger allowedCount = new AtomicInteger(0);
@@ -33,6 +46,6 @@ public class FixedWindowCounterRateLimiterTest {
         }
         latch.await();
         executorService.shutdown();
-        assertTrue(allowedCount.get() <= 3, "Allowed more than accepted Requests " + allowedCount.get());
+        assertTrue(allowedCount.get() <= 5, "Allowed more than expected requests " + allowedCount.get() );
     }
 }

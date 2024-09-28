@@ -19,7 +19,7 @@ public class FixedWindowCounterRateLimiter implements RateLimiter{
     }
 
     @Override
-     synchronized public boolean allowRequest() {
+     public boolean allowRequest() {
         processWindow();
         if(requestCount.get() < maxRequests) {
             if(requestCount.incrementAndGet() <= maxRequests) {
@@ -29,12 +29,14 @@ public class FixedWindowCounterRateLimiter implements RateLimiter{
         }
         return false;
     }
-     synchronized private void processWindow(){
+     private void processWindow(){
         Long currentTime = System.nanoTime() / TimeUnit.SECONDS.toNanos(1);
         Long window = currentTime / windowSize;
-        if(!window.equals(currentWindow.get())) {
-            currentWindow.set(window);
-            requestCount.set(0);
+        synchronized (this) {
+            if(!window.equals(currentWindow.get())) {
+                currentWindow.set(window);
+                requestCount.set(0);
+            }
         }
     }
 }
