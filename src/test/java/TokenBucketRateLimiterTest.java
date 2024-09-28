@@ -1,3 +1,4 @@
+import RateLimiter.RateLimiter;
 import RateLimiter.TokenBucketRateLimiter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -62,12 +63,15 @@ public class TokenBucketRateLimiterTest {
     @Test
     public void testThreadSafety() throws InterruptedException {
         int threadCount = 10;
+        TimeSource timeSource = new TimeSource(0L);
+        RateLimiter mockedRateLimiter = new TokenBucketRateLimiter(5,1,timeSource);
+
         CountDownLatch latch = new CountDownLatch(threadCount);
         ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
         AtomicInteger allowedCount = new AtomicInteger(0);
 
         Runnable task = () -> {
-            if (rateLimiter.allowRequest()) {
+            if (mockedRateLimiter.allowRequest()) {
                 allowedCount.incrementAndGet();
             }
             latch.countDown();

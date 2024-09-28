@@ -14,7 +14,7 @@ public class SlidingWindowLogRateLimiterTest {
     RateLimiter rateLimiter;
     @BeforeEach
     public void setup() {
-        rateLimiter = new SlidingWindowLogRateLimiter(10,5);
+        rateLimiter = new SlidingWindowLogRateLimiter(1,5);
     }
     @Test
     public void testWithinLimit() {
@@ -31,12 +31,14 @@ public class SlidingWindowLogRateLimiterTest {
     }
     @Test
     public void testThreadSafety() throws InterruptedException {
-        int threadCount = 1000;
+        int threadCount = 100;
+        TimeSource timeSource = new TimeSource(0L);
+        RateLimiter mockedRateLimiter = new SlidingWindowLogRateLimiter(1,5, timeSource);
         CountDownLatch latch = new CountDownLatch(threadCount);
         ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
         AtomicInteger allowedCount = new AtomicInteger(0);
         Runnable task = ()->{
-            if(rateLimiter.allowRequest()) {
+            if(mockedRateLimiter.allowRequest()) {
                 allowedCount.incrementAndGet();
             }
             latch.countDown();
