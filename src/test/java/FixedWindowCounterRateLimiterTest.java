@@ -19,11 +19,13 @@ public class FixedWindowCounterRateLimiterTest {
     @Test
     public void threadSafetyTest() throws InterruptedException {
         int threadCount = 100;
+        TimeSource timeSource = new TimeSource(0L);
+        RateLimiter mockedRateLimiter = new FixedWindowCounterRateLimiter(1,3,timeSource);
         CountDownLatch latch = new CountDownLatch(threadCount);
         ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
         AtomicInteger allowedCount = new AtomicInteger(0);
         Runnable task = ()->{
-            if(rateLimiter.allowRequest()) {
+            if(mockedRateLimiter.allowRequest()) {
                 allowedCount.incrementAndGet();
             }
             latch.countDown();

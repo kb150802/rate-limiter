@@ -49,11 +49,13 @@ public class LeakyBucketRateLimiterTest {
     @Test
     public void testThreadSafety() throws InterruptedException {
         int threadCount = 10;
+        TimeSource timeSource = new TimeSource(0L);
+        RateLimiter mockedRateLimiter = new LeakyBucketRateLimiter(5,1);
         CountDownLatch latch = new CountDownLatch(threadCount);
         ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
         AtomicInteger allowedCount = new AtomicInteger(0);
         Runnable task = ()-> {
-            if(rateLimiter.allowRequest()) {
+            if(mockedRateLimiter.allowRequest()) {
                 allowedCount.incrementAndGet();
             }
             latch.countDown();
